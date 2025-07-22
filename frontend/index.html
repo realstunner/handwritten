@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) window.location.href = "auth.html";
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handwritten</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: darkgrey;
+      padding: 10px 150px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 0;
+    }
+
+    nav ul li {
+      margin: 0 15px;
+    }
+
+    nav ul li a {
+      color: black;
+      text-decoration: none;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-initials {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: #4caf50;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .intro {
+      text-align: center;
+      padding: 30px 20px;
+      background-color: lightgrey;
+    }
+
+    .upload-section {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .upload-box {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      background-color: white;
+      margin: 20px auto;
+      width: 300px;
+    }
+
+    .file-upload {
+      display: none;
+    }
+
+    .upload-box label {
+      cursor: pointer;
+      color: #666;
+    }
+
+    #submit-order-button {
+      display: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #333;
+      color: white;
+    }
+
+    @media (max-width: 500px) {
+      .upload-box {
+        width: 90%;
+      }
+
+      nav ul {
+        flex-direction: column;
+      }
+
+      nav ul li {
+        margin: 10px 0;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="user-profile" id="user-profile" style="display: none;">
+    <div class="avatar-initials" id="avatar-initials">--</div>
+    <span id="username">User</span>
+  </div>
+
+  <nav>
+    <ul>
+      <li><a href="auth.html">Sign In/Login</a></li>
+      <li><a href="#" onclick="logout()">Logout</a></li>
+      <li><a href="myorders.html">🧾My Order</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <section class="intro">
+    <h1>Welcome to Handwritten</h1>
+    <p>Upload your files and let us do the writing! Tap <a href="https://youtube.com/clip/Ugkxhq_ybMWDXxWqmFQNer_Ei06GHWyOmm9o?si=tMTiy-vlqHhoIpyM">here</a> for a demo.</p>
+  </section>
+
+  <section class="upload-section">
+    <h2>Upload Your File</h2>
+    <div class="upload-box">
+      <input type="file" id="file-upload" class="file-upload" />
+      <label for="file-upload">Drag and drop your file here or click to upload (&lt; 25MB)</label>
+    </div>
+
+    <input type="text" id="delivery-address" placeholder="Enter Delivery Address" style="margin:30px;width:90%; display:none;" />
+    <input type="text" id="receiver-name" placeholder="Receiver Name" style="margin:30px;width:90%; display:none;" />
+    <input type="text" id="receiver-phone" placeholder="Receiver Phone Number" style="margin:30px;width:90%; display:none;" />
+    <canvas id="pdf-preview" style="display:none; margin: 20px auto; border: 1px solid #ccc;"></canvas>
+
+    <!-- Payable Info -->
+<p id="page-count" style="font-weight: bold;"></p>
+<p id="total-cost" style="color: #333;"></p>
+
+<!-- 📸 UPI QR Code Section -->
+<div id="upi-qr-box" style="margin-top: 20px;">
+  <h3>Scan & Pay using any UPI App</h3>
+  <img src="https://yourdomain.com/static/qr-code.png" alt="UPI QR Code" style="max-width: 300px; width: 100%; height: auto; border: 1px solid #ccc; padding: 10px; background: white;" />
+  <p style="margin-top: 10px; font-weight: bold;">UPI ID: <span style="color: green;">yourupi@bank</span></p>
+</div>
+
+<!-- 💸 UPI Payment Submission -->
+<label for="transaction-id" style="font-weight: bold;">Transaction ID:</label><br/>
+<input type="text" id="transaction-id" placeholder="Enter UPI Transaction ID" style="margin-top:10px; width: 90%;" />
+
+<label for="payment-proof" style="font-weight: bold;">Upload Payment Proof:</label><br/>
+<input type="file" id="payment-proof" accept="image/*" style="margin-top:10px;" />
+
+
+<!-- ⚠️ Payment Disclaimer -->
+<p id="payment-warning" style="color: red; font-weight: bold; margin-top: 15px; display: none;">
+  ⚠️ Please enter the correct UPI Transaction ID and upload a clear screenshot. <br/>
+  This is mandatory. Your order will be processed only after verification. <br/>
+  For payment issues, contact: <a href="tel:+91XXXXXXXXXX" style="color: red; text-decoration: underline;">+91XXXXXXXXXX</a>
+</p>
+
+<!-- Final Button -->
+<button id="submit-order-button">Submit Order</button>
+
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2025 Handwritten. All rights reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+    const loginLink = document.querySelector('a[href="auth.html"]');
+    const logoutLink = document.querySelector('a[onclick="logout()"]');
+    const orderLink = document.querySelector('a[href="myorders.html"]');
+    const userProfile = document.getElementById("user-profile");
+
+    if (!token) {
+      loginLink.style.display = 'inline-block';
+      logoutLink.style.display = 'none';
+      orderLink.style.display = 'none';
+      userProfile.style.display = 'none';
+    } else {
+      loginLink.style.display = 'none';
+      logoutLink.style.display = 'inline-block';
+      orderLink.style.display = 'inline-block';
+      userProfile.style.display = 'flex';
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user && user.username) {
+        const avatar = document.getElementById("avatar-initials");
+        const usernameText = document.getElementById("username");
+
+        usernameText.textContent = user.username;
+
+        const parts = user.username.trim().split(" ");
+        const first = parts[0]?.charAt(0).toUpperCase() || '';
+        const second = parts[1]?.charAt(0).toUpperCase() || '';
+        avatar.textContent = first + second;
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

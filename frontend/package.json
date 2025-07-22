@@ -1,0 +1,14 @@
+{
+    "name": "handwritten-frontend",
+    "version": "1.0.0",
+    "description": "Modern frontend for handwritten service",
+    "scripts": {
+      "start": "vite --port 3000 --host",
+      "build": "vite build",
+      "preview": "vite preview"
+    },
+    "dependencies": {
+      "vite": "^5.0.0"
+    },
+    "type": "module"
+  }

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📦 My Orders - Handwritten</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+    }
+    header, footer {
+      text-align: center;
+      padding: 15px;
+      background-color: #333;
+      color: white;
+    }
+    .order-container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .order-card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    .order-status {
+      font-weight: bold;
+    }
+    .actions {
+      margin-top: 10px;
+    }
+    .actions button,
+    .actions a {
+      display: inline-block;
+      margin-top: 6px;
+      margin-right: 10px;
+      padding: 6px 12px;
+      background-color: #ff9800;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .reason-box {
+      margin-top: 6px;
+    }
+    .reason-box textarea {
+      width: 100%;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      min-height: 60px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>📟 My Orders</h2>
+  </header>
+
+  <main class="order-container" id="orders">
+    <!-- Orders will appear here -->
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Handwritten. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to access your orders.");
+        window.location.href = "auth.html";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/api/payment/orders", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        const data = await res.json();
+        const container = document.getElementById("orders");
+
+        if (!data.success || !data.orders || data.orders.length === 0) {
+          container.innerHTML = "<p>No orders found.</p>";
+          return;
+        }
+
+        container.innerHTML = data.orders.map(order => {
+          const statusIcon = order.status === "processing" ? "🔄"
+                            : order.status === "Out for Delivery" ? "🚚"
+                            : order.status === "Delivered" ? "📬"
+                            : order.status === "Cancelled" ? "❌"
+                            : "✅";
+
+          const cancelAvailable = !["processing", "Out for Delivery", "Delivered", "Cancelled"].includes(order.status);
+
+          return `
+            <div class="order-card">
+              <p><strong>📄 File:</strong> ${order.filename}</p>
+              <p><strong>📥 PDF:</strong> <a href="${order.fileUrl}" target="_blank">Download</a></p>
+              <p><strong>📅 Ordered:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+              <p><strong>🧮 Pages:</strong> ${order.pageCount}</p>
+              <p><strong>💰 Price:</strong> ₹${order.totalPrice}</p>
+              <p><strong>📍 Address:</strong> ${order.deliveryAddress}</p>
+              <p><strong>📞 Phone:</strong> ${order.receiverPhone}</p>
+              <p class="order-status">
+                <strong>Status:</strong> ${statusIcon} ${order.status}
+                ⏲ (${new Date(order.statusTimestamp).toLocaleString()})
+              </p>
+              ${cancelAvailable ? `
+                <div class="reason-box">
+                  <label><strong>Reason for cancellation:</strong></label>
+                  <textarea id="reason-${order._id}" placeholder="Optional: explain why you want to cancel"></textarea>
+                </div>
+                <div class="actions">
+                  <button onclick="cancelOrder('${order._id}')">❌ Cancel Order</button>
+                  <a href="mailto:support@handwritten.com" target="_blank">📢 Contact Us</a>
+                </div>
+              ` : ""}
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        document.getElementById("orders").innerHTML = "<p>⚠️ Failed to load your orders.</p>";
+      }
+    });
+
+    async function cancelOrder(orderId) {
+      const token = localStorage.getItem("token");
+      const reason = document.getElementById(`reason-${orderId}`).value.trim();
+
+      if (!confirm("Are you sure you want to cancel this order?")) return;
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/payment/cancel/${orderId}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ reason })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Order cancelled successfully.");
+          window.location.reload();
+        } else {
+          alert("❌ Could not cancel order: " + data.message);
+        }
+      } catch (err) {
+        console.error("❌ Cancel failed:", err);
+        alert("Error cancelling order.");
+      }
+    }
+  </script>
+</body>
+</html>

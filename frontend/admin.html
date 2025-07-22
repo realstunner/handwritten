@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>👑 Admin Dashboard - Handwritten</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+    }
+    header, footer {
+      text-align: center;
+      padding: 15px;
+      background-color: #333;
+      color: white;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .order-card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px #ccc;
+    }
+    .order-card p {
+      margin: 5px 0;
+    }
+    .order-card select {
+      padding: 6px;
+    }
+    .actions a, .actions button {
+      margin-top: 8px;
+      display: inline-block;
+      padding: 6px 12px;
+      background-color: #007BFF;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .payment-proof {
+      margin-top: 10px;
+    }
+    .payment-proof img {
+      max-width: 120px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .order-actions {
+      margin-top: 10px;
+    }
+    textarea {
+      width: 100%;
+      height: 60px;
+      padding: 8px;
+      margin-top: 8px;
+      resize: vertical;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* QR Panel Styles */
+    .qr-section {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    .qr-section img {
+      max-width: 150px;
+      border-radius: 6px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+    }
+    .qr-section input[type="file"] {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>📊 Admin Dashboard</h2>
+  </header>
+
+  <div class="container">
+    <!-- ✅ QR Upload Panel -->
+    <div class="qr-section" id="qr-panel">
+      <h3>📎 Upload / Replace UPI QR Code</h3>
+      <div id="qr-current">
+        <p>Fetching current QR...</p>
+      </div>
+      <input type="file" id="qr-upload" accept="image/*"/>
+      <button onclick="uploadQR()">Upload New QR</button>
+    </div>
+
+    <!-- ✅ Orders Section -->
+    <div id="order-list">Loading orders...</div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Handwritten. Admin Panel</p>
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>
